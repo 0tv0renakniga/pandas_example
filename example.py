@@ -1,6 +1,7 @@
 import pandas as pd 
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 data = {
     'obs' : [1,1,1,1,1,2,2,2,2,2,3,3,3,3,3],
     'class': [1,2,3,4,5,1,2,3,4,5,1,2,3,4,5],
@@ -158,4 +159,80 @@ def make_plts(df,col_type):
     plt.savefig("test_plt_3.png")
 
 #make_plts(dfs,'org')
-print(plt.cm())
+print(dfs[dfs['sc'].str.contains('0',case=False)])
+data = {'org': ['org1' for i in range(24)],
+        'type': [f'type_0' for i in range(8)] +
+                [f'type_1' for i in range(8)] +
+                [f'type_2' for i in range(8)],
+        'st': [f'stype_{i}' for i in ['a','a','b','b','c','c''d','d']] +
+              [f'stype_{i}' for i in ['a','a','b','b','c','c''d','d']] + 
+              [f'stype_{i}' for i in ['a','a','b','b','c','c''d','d']],
+        'sst' : [f'stype_{i}' for i in ['a0','a0','b0','b0','c0','c0','d0','d0']] +
+              [f'stype_{i}' for i in ['a1','a1','b1','b1','c1','c1','d1','d1']] + 
+              [f'stype_{i}' for i in ['a2','a2','b2','b2','c2','c2','d2','d2']],
+        'count': [int(i) for i in np.random.randint(100,1000,24)],
+        'sc': ['sc_0', 'sc_1', 'sc_0', 'sc_1','sc_0', 'sc_1', 'sc_0', 'sc_1',
+               'sc_0', 'sc_1', 'sc_0', 'sc_1','sc_0', 'sc_1', 'sc_0', 'sc_1',
+               'sc_0', 'sc_1', 'sc_0', 'sc_1','sc_0', 'sc_1', 'sc_0', 'sc_1',
+               ],
+        'percent':[float(i/100) for i in np.random.randint(0,100,24)]
+        }
+
+data2 = {'org': ['org2' for i in range(24)],
+        'count': [int(i) for i in np.random.randint(100,1000,24)],
+        'type': ['type_w', 'type_x', 'type_y', 'type_w','type_x', 'type_y', 'type_w', 'type_x','type_y', 'type_w', 'type_x', 'type_y','type_w', 'type_x', 'type_y', 'type_w','type_x', 'type_y', 'type_w', 'type_x','type_y', 'type_w', 'type_x', 'type_y'],
+        'sc': ['sc0', 'sc1', 'sc2', 'sc3','sc0', 'sc1', 'sc2', 'sc3','sc0', 'sc1', 'sc2', 'sc3','sc0', 'sc1', 'sc2', 'sc3','sc0', 'sc1', 'sc2', 'sc3','sc0', 'sc1', 'sc2', 'sc3'],
+        'percent':[float(i/100) for i in np.random.randint(0,100,24)]
+        }
+
+df = pd.DataFrame(data)
+df2 = pd.DataFrame(data2)
+concat_cols = list(set(df.columns)&set(df2.columns))
+
+def plot_1(df,df2,col1_name):
+    concat_cols = list(set(df.columns)&set(df2.columns))
+    dfs = pd.concat([df[df[concat_cols]],df2[df2[concat_cols]]],ignore_index=True)
+    colors = ['skyblue', 'lightgreen', 'salmon', 'gold', 'lightcoral','blue', 'green', 'red', 'purple', 'orange', 'brown']
+    #all_avg = np.average(dfs['percent'],weights=dfs['count'])
+    
+    # sp 1
+    all_avg = np.average(dfs['percent'],weights=dfs['count'])
+    col1_avg = [np.average(dfs[dfs['org']==i]['percent'],
+                           weights=dfs[dfs['org']==i]['count']) 
+                for i in df[col1_name].unique()]
+    
+    col1_categories = ['All Types'] + list(df[col1_name].unique())
+    col1_values = [all_avg] + [col1_avg]
+    col1_counts = [dfs['count'].sum()] + [dfs[dfs[col1_name]==i]['count'].sum() for i in df[col1_name].unique()]
+
+    def make_bar_labels(categories):
+        labels = []
+        for i,val in enumerate(categories):
+            if i == 0:
+                print(f"per: {all_avg:.2f}\n dod:{dfs['count'].sum()}")
+                labels.append([all_avg,f"per: {all_avg:.2f}\n dod:{dfs['count'].sum()}"])
+            else:
+                print(f"per: {type_averages[val]:.2f}\ndod:{dfs[dfs[col1_name]==val]['count'].sum()}")
+                labels.append([type_averages[val],f"per: {all_types_avg:.2f}\n dod:{df[df[col_type]==val]['count'].sum()}"])
+
+
+def num_vars_dist(df,num_vars,nplots_rows,nplots_cols):
+    '''
+    Input
+    df: pd.dataframe -> pandas DataFrame containing data
+    num_var: list -> list of column names found in the dataframe
+    nplots_rows: int -> total rows for subplots
+    nplots_cols: int -> total columns for subplots
+    '''
+    fig, ax = plt.subplots(nplots_rows,nplots_cols,figsize=(10, 8))
+    fig.suptitle("Dataset Distribution: Numerical Variables",y=0.9)
+    ax = ax.flatten()
+
+    for i, num_var in enumerate(num_vars):
+        sns.histplot(df[num_var],ax=ax[i])
+        ax[i].set_title(num_var)
+        ax[i].set_xlabel('')
+
+    fig.tight_layout(rect=[0,0,1,0.9])
+
+
