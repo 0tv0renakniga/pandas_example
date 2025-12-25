@@ -109,8 +109,8 @@ all_data = {'count':sum(data['count']),
             'type':['all'],
             'percent':np.average(data['percent'],weights = data['count'])}
 print(all_data)
-dfs =pd.concat([df[concat_cols],df2[concat_cols]],ignore_index=True)
-def make_plts(df,col_type):
+
+def make_plts(df,col_type,plt_name):
     # 1. Calculate the weighted average for all types
     all_types_avg = np.average(df['percent'], weights=df['count'])
 
@@ -131,7 +131,7 @@ def make_plts(df,col_type):
     plt.bar(categories, values, color=colors[:len(categories)])
 
     # 5. Add titles and labels for clarity
-    plt.title('Weighted Average of Percent by Type', fontsize=16)
+    plt.title(plt_name, fontsize=16)
     plt.ylabel('Weighted Average of Percent', fontsize=12)
     plt.xlabel('Category', fontsize=12)
     plt.ylim(0, 1.0) # Set a consistent y-axis range for percentages
@@ -156,17 +156,17 @@ def make_plts(df,col_type):
 
     # Display the plot
     plt.tight_layout()
-    plt.savefig("test_plt_3.png")
+    plt.savefig(f"{plt_name}.png")
 
 #make_plts(dfs,'org')
-print(dfs[dfs['sc'].str.contains('0',case=False)])
+# faux data
 data = {'org': ['org1' for i in range(24)],
         'type': [f'type_0' for i in range(8)] +
                 [f'type_1' for i in range(8)] +
                 [f'type_2' for i in range(8)],
-        'st': [f'stype_{i}' for i in ['a','a','b','b','c','c''d','d']] +
-              [f'stype_{i}' for i in ['a','a','b','b','c','c''d','d']] + 
-              [f'stype_{i}' for i in ['a','a','b','b','c','c''d','d']],
+        'st': [f'stype_{i}' for i in ['a','a','b','b','c','c','d','d']] +
+              [f'stype_{i}' for i in ['a','a','b','b','c','c','d','d']] + 
+              [f'stype_{i}' for i in ['a','a','b','b','c','c','d','d']],
         'sst' : [f'stype_{i}' for i in ['a0','a0','b0','b0','c0','c0','d0','d0']] +
               [f'stype_{i}' for i in ['a1','a1','b1','b1','c1','c1','d1','d1']] + 
               [f'stype_{i}' for i in ['a2','a2','b2','b2','c2','c2','d2','d2']],
@@ -188,51 +188,12 @@ data2 = {'org': ['org2' for i in range(24)],
 df = pd.DataFrame(data)
 df2 = pd.DataFrame(data2)
 concat_cols = list(set(df.columns)&set(df2.columns))
+dfs =pd.concat([df[concat_cols],df2[concat_cols]],ignore_index=True)
+print(dfs[dfs['sc'].str.contains('0',case=False)])
 
-def plot_1(df,df2,col1_name):
-    concat_cols = list(set(df.columns)&set(df2.columns))
-    dfs = pd.concat([df[df[concat_cols]],df2[df2[concat_cols]]],ignore_index=True)
-    colors = ['skyblue', 'lightgreen', 'salmon', 'gold', 'lightcoral','blue', 'green', 'red', 'purple', 'orange', 'brown']
-    #all_avg = np.average(dfs['percent'],weights=dfs['count'])
-    
-    # sp 1
-    all_avg = np.average(dfs['percent'],weights=dfs['count'])
-    col1_avg = [np.average(dfs[dfs['org']==i]['percent'],
-                           weights=dfs[dfs['org']==i]['count']) 
-                for i in df[col1_name].unique()]
-    
-    col1_categories = ['All Types'] + list(df[col1_name].unique())
-    col1_values = [all_avg] + [col1_avg]
-    col1_counts = [dfs['count'].sum()] + [dfs[dfs[col1_name]==i]['count'].sum() for i in df[col1_name].unique()]
+make_plts(dfs,'org',"first_plt")
+make_plts(df,'type',"sec_plt")
+make_plts(df2,'type','third_plt')
 
-    def make_bar_labels(categories):
-        labels = []
-        for i,val in enumerate(categories):
-            if i == 0:
-                print(f"per: {all_avg:.2f}\n dod:{dfs['count'].sum()}")
-                labels.append([all_avg,f"per: {all_avg:.2f}\n dod:{dfs['count'].sum()}"])
-            else:
-                print(f"per: {type_averages[val]:.2f}\ndod:{dfs[dfs[col1_name]==val]['count'].sum()}")
-                labels.append([type_averages[val],f"per: {all_types_avg:.2f}\n dod:{df[df[col_type]==val]['count'].sum()}"])
-
-
-def num_vars_dist(df,num_vars,nplots_rows,nplots_cols):
-    '''
-    Input
-    df: pd.dataframe -> pandas DataFrame containing data
-    num_var: list -> list of column names found in the dataframe
-    nplots_rows: int -> total rows for subplots
-    nplots_cols: int -> total columns for subplots
-    '''
-    fig, ax = plt.subplots(nplots_rows,nplots_cols,figsize=(10, 8))
-    fig.suptitle("Dataset Distribution: Numerical Variables",y=0.9)
-    ax = ax.flatten()
-
-    for i, num_var in enumerate(num_vars):
-        sns.histplot(df[num_var],ax=ax[i])
-        ax[i].set_title(num_var)
-        ax[i].set_xlabel('')
-
-    fig.tight_layout(rect=[0,0,1,0.9])
-
+make_plts(df,'st')
 
